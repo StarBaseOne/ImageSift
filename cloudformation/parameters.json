@@ -1,1 +1,27 @@
+[
+  {
+    "ParameterKey": "BucketName",
+    "ParameterValue": "your-s3-bucket-name"
+  },
+  {
+    "ParameterKey": "BucketPrefix",
+    "ParameterValue": "your-s3-bucket-prefix"
+  },
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "ml.p3.2xlarge"
+  },
+  {
+    "ParameterKey": "NumberOfLayers",
+    "ParameterValue": "18"
+  },
+  {
+    "ParameterKey": "LearningRate",
+    "ParameterValue": "0.01"
+  },
+  {
+    "ParameterKey": "Epochs",
+    "ParameterValue": "30"
+  }
+]
 
