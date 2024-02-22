@@ -1,1 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Stack for deploying image recognition application
+
+Resources:
+  ImageUploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-image-upload-bucket"
+
+  UploadImageFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: upload-image.handler
+      Role: !GetAtt UploadImageFunctionRole.Arn
+      Code:
+        S3Bucket: !Ref AWS::AccountId
+        S3Key: upload-image.zip
+      Runtime: python3.8
+      Environment:
+        Variables:
+          UPLOAD_BUCKET_NAME: !Ref ImageUploadBucket
+      Timeout: 30
+
+  UploadImageFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaS3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !GetAtt ImageUploadBucket.Arn
+
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: ImageRecognitionAPI
+
+  ImageUploadApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      RestApiId: !Ref ApiGatewayRestApi
+      PathPart: upload
+
+  ImageUploadApiMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      ResourceId: !Ref ImageUploadApiResource
+      RestApiId: !Ref ApiGatewayRestApi
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations
+          - LambdaFunctionArn: !GetAtt UploadImageFunction.Arn
+
+Outputs:
+  ImageUploadBucketName:
+    Description: Name of the S3 bucket for image uploads
+    Value: !Ref ImageUploadBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-ImageUploadBucketName"
 
