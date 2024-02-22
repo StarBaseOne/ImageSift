@@ -66,6 +66,16 @@ Resources:
         Uri: !Sub
           - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations
           - LambdaFunctionArn: !GetAtt UploadImageFunction.Arn
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: Empty
+      RequestParameters:
+        method.request.header.Content-Type: false
+        method.request.header.Content-Disposition: false
+      RequestModels:
+        application/json: Empty
+
 
 Outputs:
   ImageUploadBucketName:
